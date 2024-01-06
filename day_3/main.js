@@ -26,15 +26,31 @@ fs.readFile('full.txt', 'utf8', (err, data) => {
 
         if (char == "." || !isNaN(char)) {
             console.log("It is a dot or a number, will continue...")
+
+        } else if (char == "*") {
+
+            console.log("Contains gear")
+
+            var numbers = getAdjacentNumbersForGears(matrix, matrixSize, coordinate)
+
+            if (numbers.length == 2) {
+
+                console.log(numbers)
+
+                const ratio = numbers[0] * numbers[1]
+
+                total = total + ratio
+            }
+
         } else {
-            console.log("Contains symbol " + char)
-            var numbers = getAdjacentNumbers(matrix, matrixSize, coordinate)
+            // console.log("Contains symbol " + char)
+            // var numbers = getAdjacentNumbers(matrix, matrixSize, coordinate)
 
-            console.log(numbers)
+            // console.log(numbers)
 
-            total = total + numbers.reduce((a, b) => a + b, 0)
+            // total = total + numbers.reduce((a, b) => a + b, 0)
         }
-        
+
         console.log("-----------------") 
     }
 
@@ -43,6 +59,16 @@ fs.readFile('full.txt', 'utf8', (err, data) => {
   console.log("total is " + total)
 
 })
+
+function getAdjacentNumbersForGears(matrix, matrixSize, coordinate){
+
+    const actions = ["above", "above-l", "above-r", "below", "below-l", "below-r", "before", "after"]
+
+    const numbers = actions.map(action => getNumber(matrix, matrixSize, coordinate, action))
+        .filter(Boolean);
+        
+    return [...new Set(numbers)]
+}
 
 function getAdjacentNumbers(matrix, matrixSize, coordinate){
 
