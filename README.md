@@ -22,7 +22,7 @@ My goal is to complete all exercices with a different languages.
 1. Go [X]
 2. Python [X]
 3. Javascript [X]
-4. Rust
+4. Rust [X]
 5. Ruby
 6. Lua
 7. Scala
@@ -30,7 +30,7 @@ My goal is to complete all exercices with a different languages.
 9. Elixir
 10. Clojure
 11. Java
-12. Kotline
+12. Kotlin
 13. Perl
 14. Julia
 15. Zig
