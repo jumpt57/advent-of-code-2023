@@ -6,7 +6,7 @@ My goal is to complete all exercices with a different languages.
 2. In Python
 3. In Javascript
 4. In Rust
-5. In..
+5. In Julia
 6. In..
 7. In..
 8. In..
@@ -15,7 +15,16 @@ My goal is to complete all exercices with a different languages.
 11. In..
 12. In..
 13. In..
-14. In..
+15. In..
+16. In..
+17. In..
+18. In..
+19. In..
+20. In..
+21. In..
+22. In..
+24. In..
+25. In..
 
 ## List of languages
 
