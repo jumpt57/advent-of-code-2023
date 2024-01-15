@@ -1,53 +1,126 @@
 read_my_file = filename -> split(read(open(filename, "r"), String), "\n\n")
-extract_seeds = file -> split(strip(last(split(first(filter(line -> contains(line, "seeds"), file)), ':'))), ' ')
 to_int = str -> parse(Int64, str)
 
-function extract_next_value(line, previous_value)
+function extract_previous_value(ranges, next_value)
 
-    next_value = previous_value
+    previous_value = next_value
 
-    numbers_with_label = split(line, "\n")
-    popfirst!(numbers_with_label)
-
-    for values in numbers_with_label
-        splitted = split(values, ' ')
-        destination = to_int(popfirst!(splitted))
-        source = to_int(popfirst!(splitted))
-        range = to_int(popfirst!(splitted))
-        if source <= previous_value <= source + range
-            soil_value = previous_value + (destination - source)
-            next_value = soil_value
+    for range in ranges
+        destination = range[1]
+        source = range[2]
+        range = range[3]
+        if destination <= next_value <= destination + range
+            previous_value = next_value  + (source - destination)
+            break
         end
     end
 
-    return next_value
+    return previous_value
 end
 
-extract = (label, last_value) -> first(map(line -> extract_next_value(line, last_value), filter(line -> contains(line, label), lines)))
+function extract_map(block) 
+    lines = split(block, "\n")
+    popfirst!(lines)
 
-lines = read_my_file("full.txt")
+    array = map(line -> map(str -> to_int(str), split(line, " ")), lines)
 
-locations = Int[]
-
-for seed in extract_seeds(lines)
-
-    seed = to_int(seed)
-
-    println("Seed to find $(seed)") 
-
-    soil_value = extract("seed-to-soil", seed)
-    fertilizer_value = extract("soil-to-fertilizer", soil_value)
-    water_value = extract("fertilizer-to-water", fertilizer_value)
-    light_value = extract("water-to-light", water_value)
-    temperature_value = extract("light-to-temperature", light_value)
-    humidity_value = extract("temperature-to-humidity", temperature_value) 
-    location_value = extract("humidity-to-location", humidity_value) 
-
-    push!(locations, location_value)
-
-    println("--------") 
+    return array
 end
 
-minimum_location = minimum(locations)
+function generate_seeds_ranges(seeds_range)
+    local seeds = Tuple{Int64, Int64}[]
+    i = 1
+    while i <= length(seeds_range)
+        seed_start = seeds_range[i]
+        range = seeds_range[i+1]
+        push!(seeds, (seed_start, range))
+        i += 2
+    end
+    sort!(seeds)
+    return seeds
+end
 
-println("Lowest location value is $(minimum_location)")
+function from_location_to_seed(maps, location)
+
+    humidity = extract_previous_value(maps["humidity-to-location"], location) 
+    temperature = extract_previous_value(maps["temperature-to-humidity"], humidity) 
+    light = extract_previous_value(maps["light-to-temperature"], temperature)
+    water = extract_previous_value(maps["water-to-light"], light)
+    fertilizer = extract_previous_value(maps["fertilizer-to-water"], water)
+    soil = extract_previous_value(maps["soil-to-fertilizer"], fertilizer) 
+
+    return extract_previous_value(maps["seed-to-soil"], soil) 
+end
+
+function extract_maps(blocks)
+
+    values =  Dict([])
+
+    for block in blocks
+
+        if contains(block, "seeds:")
+            parts = split(block, ":")
+            popfirst!(parts)
+            numbers = strip(first(parts))
+            values["seeds"] = map(chunk -> to_int(chunk), split(numbers, " "))
+            continue
+
+        elseif contains(block, "seed-to-soil")
+            values["seed-to-soil"] = extract_map(block)
+            continue
+
+        elseif contains(block, "soil-to-fertilizer")
+            values["soil-to-fertilizer"] = extract_map(block)
+            continue
+
+        elseif contains(block, "fertilizer-to-water")
+            values["fertilizer-to-water"] = extract_map(block)
+            continue
+
+        elseif contains(block, "water-to-light")
+            values["water-to-light"] = extract_map(block)
+            continue
+
+        elseif contains(block, "light-to-temperature")
+            values["light-to-temperature"] =extract_map(block)
+            continue
+
+        elseif contains(block, "temperature-to-humidity")
+            values["temperature-to-humidity"] = extract_map(block)
+            continue
+
+        elseif contains(block, "humidity-to-location")
+            values["humidity-to-location"] = extract_map(block)
+            continue
+
+        else
+            continue
+        end
+    end
+
+    return values
+end
+
+function main()
+
+    local blocks = read_my_file("full.txt")
+    local maps = extract_maps(blocks)
+    local seed_ranges = generate_seeds_ranges(maps["seeds"])
+
+    location = 0
+    while true
+
+        println(location)
+
+        seed = from_location_to_seed(maps, location)
+        if length(filter(range -> range[1] <= seed <= range[1] + range[2] - 1, seed_ranges)) >= 1
+            break
+        end
+
+        location += 1
+    end
+
+end
+
+println("Got $(Threads.nthreads()) threads")
+@time main()
