@@ -41,7 +41,7 @@ My goal is to complete all exercices with a different languages.
 11. Java
 12. Kotlin
 13. Perl
-14. Julia
+14. Julia [X]
 15. Zig
 16. Ocaml
 17. C
