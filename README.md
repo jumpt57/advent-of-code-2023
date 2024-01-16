@@ -7,7 +7,7 @@ My goal is to complete all exercices with a different languages.
 3. In Javascript
 4. In Rust
 5. In Julia
-6. In..
+6. In Scala
 7. In..
 8. In..
 9. In..
@@ -34,7 +34,7 @@ My goal is to complete all exercices with a different languages.
 4. Rust [X]
 5. Ruby
 6. Lua
-7. Scala
+7. Scala [X]
 8. Haskell
 9. Elixir
 10. Clojure
