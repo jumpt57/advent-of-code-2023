@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.Optional;
 
 public class Main {
 
@@ -17,30 +18,50 @@ public class Main {
         var hands = main.extractHands("full.txt");
 
         var handsWithScore = hands.stream()
-                .map(hand -> Map.entry(hand[0], main.handTypeValue(hand[0])))
+                .map(hand -> Map.entry(hand[0], main.handValue(hand[0])))
+                .map(entry -> Map.entry(entry.getKey(),
+                        main.foundHigherHandsPowerWithJoker(entry.getKey(), entry.getValue())))
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
         System.out.println("");
         System.out.println("Before Sorting :");
         hands.forEach(hand -> System.out
-                .println(String.format("For hand %s score is %d", hand[0], handsWithScore.get(hand[0]))));
+                .println(String.format("For hand %s %s", hand[0], hand[1])));
+        System.out.println("");
 
         hands.sort((hand1, hand2) -> {
+
+            System.out.println(String.format("Comparing %s with %s", hand1[0], hand2[0]));
 
             var score1 = handsWithScore.get(hand1[0]);
             var score2 = handsWithScore.get(hand2[0]);
 
             if (score1 == score2) {
+
+                System.out.println(String.format("%s with %s are equals", hand1[0], hand2[0]));
+
                 for (int i = 0; i < hand1[0].length(); i++) {
 
-                    var subScore1 = main.power(String.valueOf(hand1[0].charAt(i)));
-                    var subScore2 = main.power(String.valueOf(hand2[0].charAt(i)));
+                    var char1 = String.valueOf(hand1[0].charAt(i));
+                    var char2 = String.valueOf(hand2[0].charAt(i));
+
+                    System.out.println(String.format("Comparing %s with %s", char1, char2));
+
+                    var subScore1 = main.power(char1);
+                    var subScore2 = main.power(char2);
 
                     if (subScore1 != subScore2) {
-                        return subScore1.compareTo(subScore2);
+                        var result = subScore1.compareTo(subScore2);
+
+                        System.out.println(String.format("%s is %s %s", char1,
+                                result == 0 ? "equal" : result == 1 ? "supp" : "infer", char2));
+
+                        return result;
                     }
                 }
             }
+
+            System.out.println("");
 
             return score1.compareTo(score2);
         });
@@ -48,12 +69,10 @@ public class Main {
         System.out.println("");
         System.out.println("After Sorting :");
         hands.forEach(hand -> System.out
-                .println(String.format("For hand %s score is %d", hand[0], handsWithScore.get(hand[0]))));
+                .println(String.format("For hand %s %s", hand[0], hand[1])));
 
         Integer result = IntStream.range(0, hands.size())
-                .map(i -> {
-                    return Integer.parseInt(hands.get(i)[1]) * (i + 1);
-                })
+                .map(i -> Integer.parseInt(hands.get(i)[1]) * (i + 1))
                 .reduce(0, Integer::sum);
 
         System.out.println("");
@@ -67,11 +86,12 @@ public class Main {
             return lines.map(line -> line.split(" "))
                     .collect(Collectors.toList());
         }
-
     }
 
     private Integer power(String card) {
         switch (card) {
+            case "J":
+                return 1;
             case "2":
                 return 2;
             case "3":
@@ -90,79 +110,98 @@ public class Main {
                 return 9;
             case "T":
                 return 10;
-            case "J":
-                return 11;
             case "Q":
-                return 12;
+                return 11;
             case "K":
-                return 13;
+                return 12;
             case "A":
-                return 14;
+                return 13;
             default:
                 throw new IllegalArgumentException(String.format("Card %s is unknown", card));
         }
     }
 
-    /*
-     * 
-     * Five of a kind, where all five cards have the same label: AAAAA
-     * Four of a kind, where four cards have the same label and one card has a
-     * different label: AA8AA
-     * Full house, where three cards have the same label, and the remaining two
-     * cards share a different label: 23332
-     * Three of a kind, where three cards have the same label, and the remaining two
-     * cards are each different from any other card in the hand: TTT98
-     * Two pair, where two cards share one label, two other cards share a second
-     * label, and the remaining card has a third label: 23432
-     * One pair, where two cards share one label, and the other three cards have a
-     * different label from the pair and each other: A23A4
-     * High card, where all cards' labels are distinct: 23456
-     * 
-     * 
-     */
-    private Integer handTypeValue(String hand) {
+    private Integer handValue(String hand) {
 
         var cards = List.of(hand.split(""));
 
+        var score = 0;
+
         if (isFiveOfKind(cards)) {
-            var score = 7; // * scoreOfCards(cards);
-            System.out.println(String.format("Hand %s is five of kind, score is %d", hand, score));
-            return score;
+            System.out.println(String.format("Hand %s is five of kind, score is 7", hand));
+            score = 7;
         } else if (isFourOfKind(cards)) {
-            var score = 6; // * scoreOfCards(cards);
-            System.out.println(String.format("Hand %s is four of kind, score is %d", hand, score));
-            return score;
+            System.out.println(String.format("Hand %s is four of kind, score is 6", hand));
+            score = 6;
         } else if (isFullHouse(cards)) {
-            var score = 5; // * scoreOfCards(cards);
-            System.out.println(String.format("Hand %s is full house, score is %d", hand, score));
-            return score;
+            System.out.println(String.format("Hand %s is full house, score is 5", hand));
+            score = 5;
         } else if (isThreeOfKind(cards)) {
-            var score = 4; // * scoreOfCards(cards);
-            System.out.println(String.format("Hand %s is three of kind, score is %d", hand, score));
-            return score;
+            System.out.println(String.format("Hand %s is three of kind, score is 4", hand));
+            score = 4;
         } else if (isTwoPairs(cards)) {
-            var score = 3; // * scoreOfCards(cards);
-            System.out.println(String.format("Hand %s is two pairs, score is %d", hand, score));
-            return score;
+            System.out.println(String.format("Hand %s is two pairs, score is 3", hand));
+            score = 3;
         } else if (isOnePair(cards)) {
-            var score = 2; // * scoreOfCards(cards);
-            System.out.println(String.format("Hand %s is one pair, score is %d", hand, score));
-            return score;
+            System.out.println(String.format("Hand %s is one pair, score is 2", hand));
+            score = 2;
         } else if (isHighCard(cards)) {
-            var score = 1; // * scoreOfCards(cards);
-            System.out.println(String.format("Hand %s is high card, score is %d", hand, score));
-            return score;
+            System.out.println(String.format("Hand %s is high card, score is 1", hand));
+            score = 1;
         } else {
             System.out.println(String.format("Hand %s is something else", hand));
         }
 
-        return 0;
+        return score;
     }
 
-    private Integer scoreOfCards(List<String> cards) {
-        return cards.stream()
-                .map(card -> power(card))
-                .reduce(0, Integer::sum);
+    private Integer foundHigherHandsPowerWithJoker(String hand, final Integer currentScore) {
+
+        if (!hand.contains("J")) {
+            return currentScore;
+        }
+
+        var cards = List.of(hand.split(""));
+        var localCards = cards.stream().collect(Collectors.joining(""));
+        var jokerCardsCount = Collections.frequency(cards, "J");
+        var maxScore = currentScore;
+
+        Optional<Map.Entry<String, Integer>> opHigherFrequencyCard = cards.stream()
+                .filter(card -> {
+                    var result = card.compareTo("J") != 0;
+                    return result;
+                })
+                .map(card -> Map.entry(card, Collections.frequency(cards, card)))
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .findFirst();
+
+        if (opHigherFrequencyCard.isPresent()) {
+
+            var higherFrequencyCard = opHigherFrequencyCard.get();
+
+            for (int i = 0; i < jokerCardsCount; i++) {
+                var newHand = localCards.replace("J", higherFrequencyCard.getKey());
+                var newScore = handValue(newHand);
+    
+                if (newScore > maxScore) {
+                    maxScore = newScore;
+                }
+            }
+    
+            System.out.println(String.format("With Joker hand %s has power of %d", localCards, maxScore));
+            System.out.println("");
+    
+            return maxScore;
+
+        } 
+
+        if (hand.compareTo("JJJJJ") == 0) {
+            return handValue("AAAAA");
+        }
+
+        opHigherFrequencyCard.orElseThrow();
+
+        return 0;
     }
 
     private Boolean isFiveOfKind(List<String> cards) {
