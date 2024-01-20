@@ -8,7 +8,7 @@ My goal is to complete all exercices with a different languages.
 4. In Rust
 5. In Julia
 6. In Scala
-7. In..
+7. In Java
 8. In..
 9. In..
 10. In..
@@ -38,7 +38,7 @@ My goal is to complete all exercices with a different languages.
 8. Haskell
 9. Elixir
 10. Clojure
-11. Java
+11. Java [X]
 12. Kotlin
 13. Perl
 14. Julia [X]
