@@ -2,5 +2,5 @@
 .metals
 .vscode
 out
-.iml
-.class
+*.iml
+*.class

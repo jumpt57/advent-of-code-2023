@@ -1,49 +1,77 @@
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
+
 void main() throws IOException {
+    aoc("input3.txt");
+    aoc("full.txt");
+}
 
-    Path path = Paths.get("full.txt");
+void aoc(String fileName) throws IOException {
 
-    try (var data = Files.lines(path)) {
+    Path path = Paths.get(fileName);
 
-        var lines = data.collect(Collectors.toList());
-        var instructions = lines.removeFirst();
+    var lines = Files.readAllLines(path);
 
-        lines.removeFirst(); // Remove second empty line
+    var steps = lines.getFirst();
+    var rest = lines.subList(2, lines.size());
 
-        var currentNode = lines.stream().filter(line -> line.substring(0, 3).compareTo("AAA") == 0).findFirst().orElseThrow();
-        var steps = 1;
+    var network = new HashMap<String, String[]>();
+    for (String line : rest) {
+        var s = line.split(" = ");
+        network.put(s[0], s[1].substring(1, s[1].length() -1).split(", "));
+    }
 
-        for (int i = 0; i <= instructions.length() - 1; i++) {
+    var positions = network.keySet().stream().filter(key -> key.endsWith("A")).toList();
+    var cycles = new ArrayList<ArrayList<Integer>>();
 
-            var instruction = instructions.charAt(i);
+    for (String current : positions) {
 
-            System.out.println(instruction);
+        var cycle = new ArrayList<Integer>();
 
-            var choices = currentNode.split(" = ")[1].split(", ");
+        var current_steps = steps;
+        var step_count = 0;
+        String first_z = null;
 
-            var nextNode = switch (instruction) {
-                case 'L' -> choices[0].replace("(", "");
-                case 'R'  -> choices[1].replace(")", "");
-                default -> throw new IllegalStateException(STR."Instruction \{instruction} is unknown");
-            };
+        while (true) {
 
-            System.out.println(STR."Next node is \{nextNode}");
+            while (step_count == 0 || !current.endsWith("Z")) {
+                step_count++;
 
-            if  ("ZZZ".compareTo(nextNode) == 0) break;
+                current = network.get(current)[current_steps.charAt(0) == 'L' ? 0 : 1];
+                current_steps = current_steps.substring(1) + current_steps.charAt(0);
+            }
 
-            currentNode = lines.stream().filter(line -> line.substring(0, 3).compareTo(nextNode) == 0).findFirst().orElseThrow();
-            steps++;
+            cycle.add(step_count);
 
-            if (i == instructions.length() - 1) {
-                i = -1;
+            if (first_z == null) {
+                first_z = current;
+                step_count = 0;
+            } else if (first_z.equals(current)) {
+                break;
             }
         }
 
-        System.out.println(STR."Steps \{steps}");
+        cycles.add(cycle);
     }
+
+    var numsList = cycles.stream().map(ArrayList::getFirst).map(BigInteger::valueOf).toList();
+    var nums = new Stack<BigInteger>();
+    nums.addAll(numsList);
+
+    BigInteger lcm = nums.pop();
+
+    for (BigInteger num : nums) {
+        lcm = lcm.multiply(num).divide(lcm.gcd(num));
+    }
+
+
+    System.out.printf("%d \n", lcm);
 }
