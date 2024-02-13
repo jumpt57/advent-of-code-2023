@@ -6,7 +6,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 void main() throws IOException {
-    aoc("test.txt");
     aoc("input.txt");
     aoc("full.txt");
 }
@@ -34,11 +33,11 @@ void aoc(String fileName) throws IOException {
         accumulator = accumulator.reversed();
 
         var lastValues = accumulator.stream()
-                .map(List::getLast)
+                .map(List::getFirst)
                 .toList();
 
         int sum = lastValues.stream()
-                .reduce(0, Integer::sum);
+                .reduce(0, (integer, integer2) -> integer2 - integer);
 
         acc = acc + sum;
     }
